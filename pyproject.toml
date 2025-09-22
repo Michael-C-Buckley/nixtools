@@ -1,0 +1,22 @@
+[project]
+name = "NixTools"
+version = "0.1.0"
+description = "Helper scripts for managing my NixOS Systems"
+authors = [
+    {name = "Michael Buckley", email = "michaelcbuckley@proton.me"}
+]
+license = {text = "MIT"}
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "plumbum>=1.9.0",
+    "textfsm>=2.1.0",
+]
+[project.optional-dependencies]
+dev = [
+    "icecream>=2.1.4",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
