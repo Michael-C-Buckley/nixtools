@@ -15,10 +15,6 @@ run = "ruff check {staged_files}"
 glob = "*.py"
 run = "ruff format --check {staged_files}"
 
-#[pre-commit.commands.mypy]
-#glob = "*.py"
-#run = "mypy {staged_files}"
-
 [pre-commit.commands.bandit]
 glob = "*.py"
 run = "bandit -r {staged_files}"
