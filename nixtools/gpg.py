@@ -34,17 +34,12 @@ def get_info_from_shell(primary_key: str = "") -> str:
 
 def get_gpg_keys(primary_key: str = "") -> list[GPG_Key]:
     """Fetches key info from the shell of either all private keys or the one specified as the primary key"""
-    output: list[GPG_Key] = []
-
     raw_string = get_info_from_shell(primary_key)
 
     with open("nixtools/textfsm/gpg-info.txt") as f:
         result = TextFSM(f).ParseTextToDicts(raw_string)
 
-    for raw_key in result:
-        output.append(GPG_Key(**raw_key))
-
-    return output
+    return [GPG_Key(**raw_key) for raw_key in result]
 
 
 def get_keys_by_attr(input: list[GPG_Key], attr: str, filter: str) -> list[GPG_Key]:
