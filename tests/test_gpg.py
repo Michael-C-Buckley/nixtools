@@ -1,4 +1,4 @@
-from nixtools import GPG_Key, get_gpg_keys
+from nixtools import GPG_Key, get_gpg_keys, get_keys_by_attr
 
 # Sample key generated and used `gpg -K --with-keygrip --with-subkey-fingerprint`
 TEST_KEY_OUTPUT = """
@@ -75,3 +75,21 @@ def test_get_gpg_keys(monkeypatch):
     # They appear in the same order as listed above and should match
     for i, key in enumerate(test_key):
         assert key == TEST_STRUCT[i]
+
+
+def test_get_keys_by_attr():
+    """Simple logic check to test validatity of the mechanisms"""
+
+    SA_keys = get_keys_by_attr(TEST_STRUCT, "capability", "SA")
+    assert SA_keys == [TEST_STRUCT[2], TEST_STRUCT[3]]
+
+    E_keys = get_keys_by_attr(TEST_STRUCT, "capability", "E")
+    assert E_keys == [TEST_STRUCT[1], TEST_STRUCT[2]]
+
+    specific_key = get_keys_by_attr(
+        TEST_STRUCT, "subkey", "31F5A7299414BD57611F2A2A28737947AD89864B"
+    )
+    assert specific_key == [TEST_STRUCT[1]]
+
+    all_keys = get_keys_by_attr(TEST_STRUCT, "creation", "2025-09-22")
+    assert all_keys == TEST_STRUCT
