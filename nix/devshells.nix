@@ -26,5 +26,10 @@ pkgs.mkShell {
     # Set locale to avoid Python locale warnings
     export LOCALE_ARCHIVE="${pkgs.glibcLocales}/lib/locale/locale-archive"
     export LC_ALL="C.UTF-8"
+
+    if [ -d .git ]; then
+      git fetch
+      git status --short --branch
+    fi
   '';
 }
