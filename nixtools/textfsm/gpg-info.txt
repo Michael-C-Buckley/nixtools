@@ -1,6 +1,6 @@
 Value Filldown primary_key ([0-9A-F]{40})
 Value Required algorithm (\w+)
-Value Required subkey ([0-9A-F]{40})
+Value subkey ([0-9A-F]{40})
 Value Required capability ([CSEAR]{1,5})
 Value Required keygrip ([0-9A-F]{40})
 Value expiration (\d+-\d+-\d+)
@@ -9,7 +9,7 @@ Value card_no (\w+[ -]?(\w+)?)
 
 Start
   # Find the primary key
-  ^sec.\s+${algorithm}\s+${creation}\s+\[${capability}\]\s+\[expires:\s+${expiration}\]
+  ^sec.\s+${algorithm}\s+${creation}\s+\[${capability}\](\s+\[expires:\s+${expiration}\])?
   ^\s+${primary_key}
   ^\s+Card serial no\. = ${card_no}
   ^\s+Keygrip = ${keygrip} -> Record SubkeyStart
@@ -17,7 +17,7 @@ Start
 
 SubkeyStart
   # Loop over the subkeys
-  ^ssb.\s+${algorithm}\s+${creation}\s+\[${capability}\]\s+\[expires:\s+${expiration}\]
+  ^ssb.\s+${algorithm}\s+${creation}\s+\[${capability}\](\s+\[expires:\s+${expiration}\])?
   ^\s+${subkey}
   ^\s+Card serial no\. = ${card_no}
   ^\s+Keygrip = ${keygrip} -> Record SubkeyStart

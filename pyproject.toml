@@ -12,11 +12,6 @@ dependencies = [
     "plumbum>=1.9.0",
     "textfsm>=2.1.0",
 ]
-[project.optional-dependencies]
-dev = [
-    "icecream>=2.1.4",
-    "pytest>=8.4.2",
-]
 
 [build-system]
 requires = ["hatchling"]
@@ -24,4 +19,11 @@ build-backend = "hatchling.build"
 
 [tool.bandit.assert_used]
 skips = ["*test*.py", "tests/*"]
+
+[dependency-groups]
+dev = [
+    "icecream>=2.1.8",
+    "pytest>=8.4.2",
+    "pytest-cov>=7.0.0",
+]
 

@@ -6,6 +6,7 @@ dist
 .mypy_cache
 .ruff_cache
 *.egg-info/
+.coverage
 
 # Local testing
 scrap*
