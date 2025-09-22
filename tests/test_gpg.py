@@ -1,4 +1,4 @@
-from nixtools import GPG_Key, get_gpg_keys, get_keys_by_attr
+from nixtools import GPG_Key, get_gpg_keys, get_keys_by_attr, get_signing_keys
 
 # Sample key generated and used `gpg -K --with-keygrip --with-subkey-fingerprint`
 TEST_KEY_OUTPUT = """
@@ -62,6 +62,11 @@ TEST_STRUCT = [
 ]
 
 
+def create_key_list(indices_as_str: str = "") -> list[GPG_Key]:
+    """Helper function to create a list of test keys"""
+    return [TEST_STRUCT[int(x)] for x in indices_as_str]
+
+
 def test_get_gpg_keys(monkeypatch):
     """"""
 
@@ -81,15 +86,19 @@ def test_get_keys_by_attr():
     """Simple logic check to test validatity of the mechanisms"""
 
     SA_keys = get_keys_by_attr(TEST_STRUCT, "capability", "SA")
-    assert SA_keys == [TEST_STRUCT[2], TEST_STRUCT[3]]
+    assert SA_keys == create_key_list("23")
 
     E_keys = get_keys_by_attr(TEST_STRUCT, "capability", "E")
-    assert E_keys == [TEST_STRUCT[1], TEST_STRUCT[2]]
+    assert E_keys == create_key_list("12")
 
     specific_key = get_keys_by_attr(
         TEST_STRUCT, "subkey", "31F5A7299414BD57611F2A2A28737947AD89864B"
     )
-    assert specific_key == [TEST_STRUCT[1]]
+    assert specific_key == create_key_list("1")
 
     all_keys = get_keys_by_attr(TEST_STRUCT, "creation", "2025-09-22")
     assert all_keys == TEST_STRUCT
+
+
+def test_get_signing_keys():
+    assert get_signing_keys(TEST_STRUCT) == create_key_list("023")

@@ -61,3 +61,11 @@ def get_keys_by_attr(input: list[GPG_Key], attr: str, filter: str) -> list[GPG_K
     }.get(attr, exact_match)
 
     return [x for x in input if behavior(x)]
+
+
+def get_signing_keys(key_list: list[GPG_Key] = []) -> list[GPG_Key]:
+    """Simple wrapper to get GPG signing keys, will fetch keys if no list is supplied"""
+    if key_list is None:
+        key_list = get_gpg_keys()
+
+    return get_keys_by_attr(key_list, "capability", "S")
