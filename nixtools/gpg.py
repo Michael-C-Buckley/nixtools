@@ -22,23 +22,16 @@ class GPG_Key:
     subkey: str
 
 
-def get_key(primary_key: str = "") -> str:
-    """"""
+def get_gpg_keys(primary_key: str = "") -> list[GPG_Key]:
+    """Fetches key info from the shell of either all private keys or the one specified as the primary key"""
+    output: list[GPG_Key] = []
     cmd = local["gpg"]["-K", "--with-keygrip", "--with-subkey-fingerprint"]
 
     if primary_key:
         cmd = cmd[primary_key]
 
-    return cmd()
-
-
-def parse_key_info(primary_key: str = "") -> list[GPG_Key]:
-    """"""
-    output: list[GPG_Key] = []
-    keys = get_key(primary_key)
-
     with open("nixtools/textfsm/gpg-info.txt") as f:
-        result = TextFSM(f).ParseTextToDicts(keys)
+        result = TextFSM(f).ParseTextToDicts(cmd())
 
     for raw_key in result:
         output.append(GPG_Key(**raw_key))
@@ -49,9 +42,19 @@ def parse_key_info(primary_key: str = "") -> list[GPG_Key]:
 def get_keys_by_attr(input: list[GPG_Key], attr: str, filter: str) -> list[GPG_Key]:
     """Filters keys to the desired attribute and value"""
 
-    # Capabilities have a custom behavior since keys may have multiple
+    if attr == "capability":
+        filter = filter.upper()
+
+    def exact_match(elem):
+        """Match the entire term exactly"""
+        return getattr(elem, attr) == filter
+
+    def fuzzy_match(elem):
+        """Match each item individually, like capabilities"""
+        return set(filter) <= set(getattr(elem, attr))
+
     behavior = {
-        "capability": lambda x: filter in getattr(x, attr),
-    }.get(attr, lambda x: getattr(x, attr) == filter)
+        "capability": fuzzy_match,
+    }.get(attr, exact_match)
 
     return [x for x in input if behavior(x)]
