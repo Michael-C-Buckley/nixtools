@@ -18,6 +18,7 @@ class GPG_Key:
     creation: str
     expiration: str
     keygrip: str
+    presence: str
     primary_key: str
     subkey: str
 
