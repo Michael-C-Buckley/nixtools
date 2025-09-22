@@ -9,9 +9,6 @@ from dataclasses import dataclass
 from textfsm import TextFSM
 from plumbum import local
 
-# Testing Modules
-from icecream import ic
-
 
 @dataclass
 class GPG_Key:
@@ -58,9 +55,3 @@ def get_keys_by_attr(input: list[GPG_Key], attr: str, filter: str) -> list[GPG_K
     }.get(attr, lambda x: getattr(x, attr) == filter)
 
     return [x for x in input if behavior(x)]
-
-
-# Testing
-if __name__ == "__main__":
-    keys = parse_key_info()
-    ic(get_keys_by_attr(keys, "capability", "S"))
