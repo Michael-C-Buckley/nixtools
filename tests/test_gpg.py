@@ -68,8 +68,6 @@ def create_key_list(indices_as_str: str = "") -> list[GPG_Key]:
 
 
 def test_get_gpg_keys(monkeypatch):
-    """"""
-
     def mocked_gpg_cmd(primary_keys=""):
         return TEST_KEY_OUTPUT
 
@@ -100,5 +98,15 @@ def test_get_keys_by_attr():
     assert all_keys == TEST_STRUCT
 
 
-def test_get_signing_keys():
-    assert get_signing_keys(TEST_STRUCT) == create_key_list("023")
+def test_get_signing_keys(monkeypatch):
+    # Test logic with supplied keys
+    signing_keys = create_key_list("023")
+    assert get_signing_keys(TEST_STRUCT) == signing_keys
+
+    # Test logic without supplied keys
+    def mocked_gpg_cmd(primary_keys=""):
+        return TEST_KEY_OUTPUT
+
+    monkeypatch.setattr("nixtools.gpg.get_info_from_shell", mocked_gpg_cmd)
+
+    assert get_signing_keys() == signing_keys
