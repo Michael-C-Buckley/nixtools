@@ -1,4 +1,6 @@
 from nixtools import GPG_Key, get_gpg_keys, get_keys_by_attr, get_signing_keys
+from nixtools.gpg import get_info_from_shell
+from pytest import raises
 
 # Sample key generated and used `gpg -K --with-keygrip --with-subkey-fingerprint`
 TEST_KEY_OUTPUT = """
@@ -69,6 +71,19 @@ TEST_STRUCT = [
 def create_key_list(indices_as_str: str = "") -> list[GPG_Key]:
     """Helper function to create a list of test keys"""
     return [TEST_STRUCT[int(x)] for x in indices_as_str]
+
+
+def test_gpg_not_detected(monkeypatch):
+    def mock_shutil_which(binary_name):
+        return None
+
+    monkeypatch.setattr("nixtools.gpg.which", mock_shutil_which)
+
+    with raises(RuntimeError) as output:
+        get_info_from_shell()
+
+    assert "No GPG binary detected" in str(output.value)
+    assert "unable to continue" in str(output.value)
 
 
 def test_get_gpg_keys(monkeypatch):

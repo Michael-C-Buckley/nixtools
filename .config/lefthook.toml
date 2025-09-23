@@ -7,6 +7,7 @@ run = "typos -c .config/typos.toml {staged_files}"
 [pre-commit.commands.ruff-format]
 glob = "*.py"
 run = "ruff format {staged_files}"
+stage_fixed = true
 
 [pre-commit.commands.ruff-check]
 glob = "*.py"

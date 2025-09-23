@@ -9,7 +9,6 @@ license = {text = "MIT"}
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
-    "plumbum>=1.9.0",
     "textfsm>=2.1.0",
 ]
 

@@ -4,10 +4,11 @@ GPG tools for obtaining info about GnuPG keys
 
 # Python Modules
 from dataclasses import dataclass
+from shutil import which
+from subprocess import run  # nosec B404
 
 # Third Party Modules
 from textfsm import TextFSM
-from plumbum import local
 
 
 @dataclass
@@ -25,12 +26,15 @@ class GPG_Key:
 
 def get_info_from_shell(primary_key: str = "") -> str:
     """Wrapper for getting the long string from the CLI"""
-    cmd = local["gpg"]["-K", "--with-keygrip", "--with-subkey-fingerprint"]
+    if not (gpg := which("gpg")):
+        raise RuntimeError("No GPG binary detected, unable to continue")
+
+    command = [gpg, "-K", "--with-keygrip", "--with-subkey-fingerprint"]
 
     if primary_key:
-        cmd = cmd[primary_key]
+        command.append(primary_key)
 
-    return cmd()
+    return run(command, capture_output=True, text=True).stdout  # nosec B603
 
 
 def get_gpg_keys(primary_key: str = "") -> list[GPG_Key]:
