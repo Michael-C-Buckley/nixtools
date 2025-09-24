@@ -8,9 +8,7 @@ authors = [
 license = {text = "MIT"}
 readme = "README.md"
 requires-python = ">=3.13"
-dependencies = [
-    "textfsm>=2.1.0",
-]
+dependencies = []
 
 [build-system]
 requires = ["hatchling"]
@@ -20,9 +18,5 @@ build-backend = "hatchling.build"
 skips = ["*test*.py", "tests/*"]
 
 [dependency-groups]
-dev = [
-    "icecream>=2.1.8",
-    "pytest>=8.4.2",
-    "pytest-cov>=7.0.0",
-]
+dev = []
 

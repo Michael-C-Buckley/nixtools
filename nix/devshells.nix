@@ -2,11 +2,15 @@
 pkgs.mkShell {
   buildInputs = with pkgs; [
     # Python
-    python313
-    python313Packages.pip
+    (python313.withPackages(p: with p; [
+            textfsm
+            pytest
+            icecream
+        ]))
     uv
     gcc
     pkg-config
+
     # Pre-commit
     ruff
     lefthook
