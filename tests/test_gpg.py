@@ -1,5 +1,5 @@
 from nixtools import GPG_Key, get_gpg_keys, get_keys_by_attr, get_signing_keys
-from nixtools.gpg import get_info_from_shell
+from nixtools.gpg import get_key_info_from_shell
 from pytest import raises
 
 # Sample key generated and used `gpg -K --with-keygrip --with-subkey-fingerprint`
@@ -80,7 +80,7 @@ def test_gpg_not_detected(monkeypatch):
     monkeypatch.setattr("nixtools.gpg.which", mock_shutil_which)
 
     with raises(RuntimeError) as output:
-        get_info_from_shell()
+        get_key_info_from_shell()
 
     assert "No GPG binary detected" in str(output.value)
     assert "unable to continue" in str(output.value)
@@ -90,7 +90,7 @@ def test_get_gpg_keys(monkeypatch):
     def mocked_gpg_cmd(primary_keys=""):
         return TEST_KEY_OUTPUT
 
-    monkeypatch.setattr("nixtools.gpg.get_info_from_shell", mocked_gpg_cmd)
+    monkeypatch.setattr("nixtools.gpg.get_key_info_from_shell", mocked_gpg_cmd)
 
     test_key = get_gpg_keys()
 
@@ -126,6 +126,6 @@ def test_get_signing_keys(monkeypatch):
     def mocked_gpg_cmd(primary_keys=""):
         return TEST_KEY_OUTPUT
 
-    monkeypatch.setattr("nixtools.gpg.get_info_from_shell", mocked_gpg_cmd)
+    monkeypatch.setattr("nixtools.gpg.get_key_info_from_shell", mocked_gpg_cmd)
 
     assert get_signing_keys() == signing_keys

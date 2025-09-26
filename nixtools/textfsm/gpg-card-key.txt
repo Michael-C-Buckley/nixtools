@@ -1,0 +1,9 @@
+Value KEY_ID ([0-9A-F]+)
+Value PRESENCE (.)
+Value ALGORITHM (\w+)
+Value EXPIRATION (\d+\-\d+\-\d+)
+Value CREATION (\d+\-\d+\-\d+)
+Value CARD_NUM (\w+[ -]?(\w+)?)
+
+Start
+  ^(sec|ssb)?${PRESENCE}\s+${ALGORITHM}\/${KEY_ID}\s+created:\s+${CREATION}\s+expires:\s+${EXPIRATION}(\s+card-no:\s+${CARD_NUM})? -> Record

@@ -24,22 +24,61 @@ class GPG_Key:
     subkey: str
 
 
-def get_info_from_shell(primary_key: str = "") -> str:
-    """Wrapper for getting the long string from the CLI"""
+@dataclass
+class gpg_card:
+    reader: str
+    application_id: str
+    application_type: str
+    version: str
+    manufacturer: str
+    serial_number: str
+    cardholder_name: str
+    language_prefs: str
+    salutation: str
+    public_key_url: str
+    login_data: str
+    signature_pin: str
+    key_attributes: str
+    max_pin_lengths: str
+    pin_retry_counter: str
+    signature_counter: str
+    kdf_setting: str
+    uif_sign: str
+    uif_decrypt: str
+    uif_auth: str
+    card_signature_key: str
+    card_signature_key_creation: str
+    card_encryption_key: str
+    card_encryption_key_creation: str
+    card_authentication_key: str
+    card_authentication_key_creation: str
+    primary_key: GPG_Key
+    subkeys: dict[str, GPG_Key]
+
+
+def command_runner(command_args: list[str]):
+    """Wrapper for GPG commands"""
     if not (gpg := which("gpg")):
         raise RuntimeError("No GPG binary detected, unable to continue")
 
-    command = [gpg, "-K", "--with-keygrip", "--with-subkey-fingerprint"]
+    command_args = [gpg] + command_args
+
+    return run(command_args, capture_output=True, text=True).stdout  # nosec B603
+
+
+def get_key_info_from_shell(primary_key: str = "") -> str:
+    """Wrapper for getting the long string from the CLI"""
+    command_args = ["-K", "--with-keygrip", "--with-subkey-fingerprint"]
 
     if primary_key:
-        command.append(primary_key)
+        command_args.append(primary_key)
 
-    return run(command, capture_output=True, text=True).stdout  # nosec B603
+    return command_runner(command_args)
 
 
 def get_gpg_keys(primary_key: str = "") -> list[GPG_Key]:
     """Fetches key info from the shell of either all private keys or the one specified as the primary key"""
-    raw_string = get_info_from_shell(primary_key)
+    raw_string = get_key_info_from_shell(primary_key)
 
     with open("nixtools/textfsm/gpg-info.txt") as f:
         result = TextFSM(f).ParseTextToDicts(raw_string)
@@ -76,3 +115,8 @@ def get_signing_keys(
         key_list = get_gpg_keys(primary_key)
 
     return get_keys_by_attr(key_list, "capability", "S")
+
+
+def get_card_info():
+    """Upcoming feature to implement getting the GPG info from a smart card, like a yubikey"""
+    raise NotImplementedError("Upcoming feature")

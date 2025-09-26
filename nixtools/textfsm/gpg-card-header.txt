@@ -1,0 +1,58 @@
+Value reader (.+)
+Value application_id (\S+)
+Value application_type (\S+)
+Value version (\S+)
+Value manufacturer (\S+)
+Value serial_number (\d+)
+Value cardholder_name (.*)
+Value language_prefs (.*)
+Value salutation (.*)
+Value public_key_url (.*)
+Value login_data (.*)
+Value signature_pin (.*)
+Value key_attributes (.+)
+Value max_pin_lengths (\d+\s+\d+\s+\d+)
+Value pin_retry_counter (\d+\s+\d+\s+\d+)
+Value signature_counter (\d+)
+Value kdf_setting (\S+)
+Value uif_sign (\S+)
+Value uif_decrypt (\S+)
+Value uif_auth (\S+)
+Value card_signature_key (.+)
+Value card_signature_key_creation (.+)
+Value card_encryption_key (.+)
+Value card_encryption_key_creation (.+)
+Value card_authentication_key (.+)
+Value card_authentication_key_creation (.+)
+
+Start
+  ^Reader\s+\.+:\s+${reader}$$ -> Continue
+  ^Application\s+ID\s+\.+:\s+${application_id}$$ -> Continue
+  ^Application\s+type\s+\.+:\s+${application_type}$$ -> Continue
+  ^Version\s+\.+:\s+${version}$$ -> Continue
+  ^Manufacturer\s+\.+:\s+${manufacturer}$$ -> Continue
+  ^Serial\s+number\s+\.+:\s+${serial_number}$$ -> Continue
+  ^Name\s+of\s+cardholder:\s+${cardholder_name}$$ -> Continue
+  ^Language\s+prefs\s+\.+:\s+${language_prefs}$$ -> Continue
+  ^Salutation\s+\.+:\s+${salutation}$$ -> Continue
+  ^URL\s+of\s+public\s+key\s+:\s+${public_key_url}$$ -> Continue
+  ^Login\s+data\s+\.+:\s+${login_data}$$ -> Continue
+  ^Signature\s+PIN\s+\.+:\s+${signature_pin}$$ -> Continue
+  ^Key\s+attributes\s+\.+:\s+${key_attributes}$$ -> Continue
+  ^Max\.\s+PIN\s+lengths\s+\.+:\s+${max_pin_lengths}$$ -> Continue
+  ^PIN\s+retry\s+counter\s+:\s+${pin_retry_counter}$$ -> Continue
+  ^Signature\s+counter\s+:\s+${signature_counter}$$ -> Continue
+  ^KDF\s+setting\s+\.+:\s+${kdf_setting}$$ -> Continue
+  ^UIF\s+setting\s+\.+:\s+Sign=${uif_sign}\s+Decrypt=${uif_decrypt}\s+Auth=${uif_auth}$$ -> Signature
+
+Signature
+  ^Signature key(\s+)?(\.){0,5}:${card_signature_key}
+  ^\s+created(\s+)?(\.){0,5}:${card_signature_key_creation} -> Encryption
+
+Encryption
+  ^Encryption key(\s+)?(\.){0,5}:${card_encryption_key}
+  ^\s+created(\s+)?(\.){0,5}:${card_encryption_key_creation} -> Authentication
+
+Authentication
+  ^Authentication key(\s+)?(\.){0,5}:${card_authentication_key}
+  ^\s+created(\s+)?(\.){0,5}:${card_authentication_key_creation} -> Record
