@@ -4,7 +4,9 @@ GPG tools for obtaining info about GnuPG keys
 
 # Python Modules
 from dataclasses import dataclass
+from io import StringIO
 from shutil import which
+from re import split
 from subprocess import run  # nosec B404
 
 # Third Party Modules
@@ -25,7 +27,9 @@ class GPG_Key:
 
 
 @dataclass
-class gpg_card:
+class GPG_Card:
+    primary_key: GPG_Key
+    subkeys: dict[str, GPG_Key]
     reader: str
     application_id: str
     application_type: str
@@ -52,8 +56,6 @@ class gpg_card:
     card_encryption_key_creation: str
     card_authentication_key: str
     card_authentication_key_creation: str
-    primary_key: GPG_Key
-    subkeys: dict[str, GPG_Key]
 
 
 def command_runner(command_args: list[str]):
@@ -117,6 +119,24 @@ def get_signing_keys(
     return get_keys_by_attr(key_list, "capability", "S")
 
 
-def get_card_info():
-    """Upcoming feature to implement getting the GPG info from a smart card, like a yubikey"""
-    raise NotImplementedError("Upcoming feature")
+def get_card_info() -> GPG_Card:
+    """Get the GPG info from a smart card, like a yubikey"""
+    card_status = split(r"\nsec", command_runner(["--card-status"]))
+
+    with open("nixtools/textfsm/gpg-card-header.txt") as f:
+        header_info = TextFSM(f).ParseTextToDicts(card_status[0])
+
+    # Load the contents into a buffer as parsers cannot be reused and to avoid IO
+    with open("nixtools/textfsm/gpg-card-key.txt") as f:
+        buffer = StringIO(f.read())
+
+    # Manipulate the strings, then feed a template to reduce template logic
+    key_info = card_status[1].replace("\n", "").split("ssb")
+
+    primary_key = TextFSM(buffer).ParseTextToDicts(key_info.pop(0))
+
+    subkeys = []
+    for key in key_info:
+        subkeys.append(TextFSM(buffer).ParseTextToDicts(key))
+
+    return GPG_Card(primary_key, subkeys, **(header_info[0]))
