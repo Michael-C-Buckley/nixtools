@@ -19,6 +19,9 @@ build-backend = "hatchling.build"
 [tool.bandit.assert_used]
 skips = ["*test*.py", "tests/*"]
 
+[tool.pyright]
+stubPath = "stubs"
+
 [dependency-groups]
 dev = [
     "icecream>=2.1.8",
