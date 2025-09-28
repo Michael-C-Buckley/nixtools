@@ -9,6 +9,7 @@ pkgs.mkShell {
 
     # Pre-commit
     ruff
+    pyrefly
     lefthook
     typos
     treefmt
@@ -19,12 +20,13 @@ pkgs.mkShell {
       lib.makeLibraryPath [
         stdenv.cc.cc
       ];
+    UV_LINK_MODE="copy";
+    LOCALE_ARCHIVE="${pkgs.glibcLocales}/lib/locale/locale-archive";
+    LC_ALL="C.UTF-8";
   };
 
   shellHook = ''
     lefthook install
-    # Set locale to avoid Python locale warnings
-    export LOCALE_ARCHIVE="${pkgs.glibcLocales}/lib/locale/locale-archive"
-    export LC_ALL="C.UTF-8"
+    uv sync --all-groups
   '';
 }
