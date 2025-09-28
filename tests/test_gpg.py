@@ -1,6 +1,6 @@
 from nixtools import GPG_Key, get_gpg_keys, get_keys_by_attr, get_signing_keys
 from nixtools.gpg import get_key_info_from_shell
-from pytest import raises
+from pytest import MonkeyPatch, raises
 
 # Sample key generated and used `gpg -K --with-keygrip --with-subkey-fingerprint`
 TEST_KEY_OUTPUT = """
@@ -73,21 +73,21 @@ def create_key_list(indices_as_str: str = "") -> list[GPG_Key]:
     return [TEST_STRUCT[int(x)] for x in indices_as_str]
 
 
-def test_gpg_not_detected(monkeypatch):
-    def mock_shutil_which(binary_name):
+def test_gpg_not_detected(monkeypatch: MonkeyPatch):
+    def mock_shutil_which(_):
         return None
 
     monkeypatch.setattr("nixtools.gpg.which", mock_shutil_which)
 
     with raises(RuntimeError) as output:
-        get_key_info_from_shell()
+        _ = get_key_info_from_shell()
 
     assert "No GPG binary detected" in str(output.value)
     assert "unable to continue" in str(output.value)
 
 
-def test_get_gpg_keys(monkeypatch):
-    def mocked_gpg_cmd(primary_keys=""):
+def test_get_gpg_keys(monkeypatch: MonkeyPatch):
+    def mocked_gpg_cmd(_):
         return TEST_KEY_OUTPUT
 
     monkeypatch.setattr("nixtools.gpg.get_key_info_from_shell", mocked_gpg_cmd)
@@ -100,7 +100,7 @@ def test_get_gpg_keys(monkeypatch):
 
 
 def test_get_keys_by_attr():
-    """Simple logic check to test validatity of the mechanisms"""
+    """Simple logic check to test validity of the mechanisms"""
 
     SA_keys = get_keys_by_attr(TEST_STRUCT, "capability", "SA")
     assert SA_keys == create_key_list("23")
@@ -117,13 +117,13 @@ def test_get_keys_by_attr():
     assert all_keys == TEST_STRUCT
 
 
-def test_get_signing_keys(monkeypatch):
+def test_get_signing_keys(monkeypatch: MonkeyPatch):
     # Test logic with supplied keys
     signing_keys = create_key_list("023")
     assert get_signing_keys(TEST_STRUCT) == signing_keys
 
     # Test logic without supplied keys
-    def mocked_gpg_cmd(primary_keys=""):
+    def mocked_gpg_cmd(_):
         return TEST_KEY_OUTPUT
 
     monkeypatch.setattr("nixtools.gpg.get_key_info_from_shell", mocked_gpg_cmd)
