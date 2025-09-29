@@ -1,7 +1,14 @@
 from argparse import ArgumentParser, Namespace
-from nixtools.gpg import get_card_info, get_gpg_keys, get_signing_keys, GPG_Key
+from nixtools.gpg import (
+    GPG_Key,
+    get_card_info,
+    get_gpg_keys,
+    get_signing_keys,
+    get_best_key,
+)
 from dataclasses import fields
-from re import match
+from re import search
+from sys import exit
 
 parser = ArgumentParser(description="GPG CLI tools")
 group = parser.add_mutually_exclusive_group()
@@ -40,33 +47,6 @@ elif args.exact:
     # Card slots may hold multi-functional keys
     filter = ["card_signature_key", "card_encryption_key", "card_authentication_key"]
 
-    def assess_algorithms(keys: list[GPG_Key]) -> list[GPG_Key] | None:
-        """"""
-        ed_keys: list[GPG_Key] = []
-        nist_keys: list[GPG_Key] = []
-        rsa_keys: list[GPG_Key] = []
-
-        for key in keys:
-            if match(r"ed", key.algorithm):
-                ed_keys.append(key)
-            elif match(r"nistp", key.algorithm):
-                nist_keys.append(key)
-            elif match(r"rsa", key.algorithm):
-                rsa_keys.append(key)
-
-        if ed_keys:
-            return ed_keys
-        if nist_keys:
-            max_len: int = max(
-                int(key.algorithm.replace("nistp", "")) for key in nist_keys
-            )
-            return [x for x in nist_keys if x.algorithm == f"nistp{max_len}"]
-        if rsa_keys:
-            max_len: int = max(
-                int(key.algorithm.replace("rsa", "")) for key in nist_keys
-            )
-            return [x for x in nist_keys if x.algorithm == f"rsa{max_len}"]
-
     if card_info := get_card_info():
         raw_keys: list[str] = [
             getattr(card_info, x.name) for x in fields(card_info) if x.name in filter
@@ -77,10 +57,17 @@ elif args.exact:
         card_signing_key_ids = [x for x in card_subkeys if x in signing_subkey_ids]
         card_signing_keys: list[GPG_Key] = [keys_dict[x] for x in card_signing_key_ids]
 
-        if key_assessment := assess_algorithms(card_signing_keys):
-            print(key_assessment[0].subkey)
-        else:
-            print("")
+        if not (best_card_key := get_best_key(card_signing_keys)):
+            best_card_key = []
 
-    # ADD TPM LOGIC
+    tpm_keys = [x for x in signing_keys if search(r"(?i)tpm", x.card_no)]
+
+    if tpm_keys or card_info:
+        hardware_keys = tpm_keys + [best_card_key]
+        print(get_best_key(hardware_keys).subkey)
+        exit(0)
+
     # ADD FALLTHROUGH PRESENT LOGIC
+    remaining_keys = [x for x in signing_keys if x.presence == " "]
+    print(get_best_key(remaining_keys).subkey)
+    exit(0)

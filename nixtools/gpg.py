@@ -6,7 +6,7 @@ GPG tools for obtaining info about GnuPG keys
 from dataclasses import dataclass
 from io import StringIO
 from shutil import which
-from re import split
+from re import split, match
 from subprocess import run  # nosec B404
 
 # Third Party Modules
@@ -146,3 +146,30 @@ def get_card_info() -> GPG_Card:
         subkeys.append(TextFSM(buffer).ParseTextToDicts(key))  # pyright: ignore[reportArgumentType]
 
     return GPG_Card(primary_key=primary_key, subkeys=subkeys, **(header_info[0]))  # pyright: ignore[reportCallIssue, reportArgumentType]
+
+
+def get_best_key(keys: list[GPG_Key]) -> GPG_Key:
+    """Simple decider for choosing an algorithm then the best key in it"""
+    ed_keys: list[GPG_Key] = []
+    nist_keys: list[GPG_Key] = []
+    rsa_keys: list[GPG_Key] = []
+
+    for key in keys:
+        if match(r"ed", key.algorithm):
+            ed_keys.append(key)
+        elif match(r"nistp", key.algorithm):
+            nist_keys.append(key)
+        elif match(r"rsa", key.algorithm):
+            rsa_keys.append(key)
+
+    def find_longest_keys(keys: list[GPG_Key], algo: str) -> list[GPG_Key]:
+        max_len: int = max(int(key.algorithm.replace(algo, "")) for key in nist_keys)
+        return [x for x in nist_keys if x.algorithm == f"{algo}{max_len}"]
+
+    # The list will be collapsed to equal value keys, just return the first available one
+    if ed_keys:
+        return ed_keys[0]
+    if nist_keys:
+        return find_longest_keys(nist_keys, "nistp")[0]
+    if rsa_keys:
+        return find_longest_keys(rsa_keys, "rsa")[0]
